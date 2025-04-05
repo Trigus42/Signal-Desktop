@@ -32,7 +32,6 @@ type NotificationDataType = Readonly<{
   sentAt: number;
   storyId?: string;
   type: NotificationType;
-  useTriToneSound?: boolean;
   wasShown?: boolean;
 }>;
 
@@ -159,7 +158,6 @@ class NotificationService extends EventEmitter {
     storyId,
     title,
     type,
-    useTriToneSound,
   }: Readonly<{
     conversationId: string;
     iconUrl?: string;
@@ -171,7 +169,6 @@ class NotificationService extends EventEmitter {
     storyId?: string;
     title: string;
     type: NotificationType;
-    useTriToneSound?: boolean;
   }>): void {
     log.info('NotificationService: showing a notification', sentAt);
 
@@ -233,10 +230,7 @@ class NotificationService extends EventEmitter {
     }
 
     if (!silent) {
-      const soundType =
-        messageId && !useTriToneSound ? SoundType.Pop : SoundType.TriTone;
-      // We kick off the sound to be played. No need to await it.
-      drop(new Sound({ soundType }).play());
+      this.#playSoundForNotification(type);
     }
   }
 
@@ -362,7 +356,6 @@ class NotificationService extends EventEmitter {
       senderTitle,
       storyId,
       sentAt,
-      useTriToneSound,
       wasShown,
       type,
     } = notificationData;
@@ -442,7 +435,6 @@ class NotificationService extends EventEmitter {
       storyId,
       title: notificationTitle,
       type,
-      useTriToneSound,
     });
   }
 
@@ -507,6 +499,35 @@ class NotificationService extends EventEmitter {
   public disable(): void {
     log.info('NotificationService: disabling');
     this.isEnabled = false;
+  }
+
+  #playSoundForNotification(
+    type: NotificationType,
+  ): void {
+    const storage = this.#getStorage();
+    const shouldPlaySound = storage.get('audio-notification');
+    
+    if (!shouldPlaySound) {
+      return;
+    }
+    
+    let soundType: SoundType;
+  
+    if (type === NotificationType.Message) {
+      soundType = SoundType.Message;
+    } else if (type === NotificationType.Reaction) {
+      soundType = SoundType.Reaction;
+    } else if (type === NotificationType.IncomingCall || 
+               type === NotificationType.IncomingGroupCall) {
+      soundType = SoundType.Call;
+    } else {
+      throw new Error(`Unsupported notification type: ${type}`);
+    }
+    
+    // We kick off the sound to be played. No need to await it.
+    drop(new Sound({ 
+      soundType, 
+    }).play());
   }
 }
 

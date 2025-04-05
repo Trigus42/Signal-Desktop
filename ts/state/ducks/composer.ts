@@ -623,7 +623,7 @@ function sendMultiMediaMessage(
               dispatch(setComposerDisabledState(conversationId, false));
 
               if (state.items.audioMessage) {
-                drop(new Sound({ soundType: SoundType.Whoosh }).play());
+                drop(new Sound({ soundType: SoundType.VoiceNoteSend }).play());
               }
             },
           }

@@ -3155,7 +3155,7 @@ function messagesAdded({
       !isJustSent &&
       messages.some(isIncoming)
     ) {
-      drop(new Sound({ soundType: SoundType.Pop }).play());
+      drop(new Sound({ soundType: SoundType.Message }).play());
     }
 
     dispatch({
